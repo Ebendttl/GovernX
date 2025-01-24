@@ -128,3 +128,37 @@
   (ft-mint? gov-token u10000 CONTRACT-OWNER)
 )
 
+;; Vote on a proposal
+(define-public (vote (proposal-id uint) (vote-type bool))
+  (let 
+    (
+      (voter tx-sender)
+      (proposal (unwrap! (map-get? proposals {proposal-id: proposal-id}) ERR-INVALID-PROPOSAL))
+      (voter-balance (ft-get-balance gov-token voter))
+    )
+    (begin
+      ;; Check proposal is active
+      (asserts! (get is-active proposal) ERR-INVALID-PROPOSAL)
+
+      ;; Prevent double voting
+      (asserts! (is-none (map-get? voter-voted {proposal-id: proposal-id, voter: voter})) ERR-INVALID-PROPOSAL)
+
+      ;; Mark voter as voted
+      (map-set voter-voted {proposal-id: proposal-id, voter: voter} true)
+
+      ;; Record vote
+      (if vote-type
+        (map-set proposals 
+          {proposal-id: proposal-id}
+          (merge proposal {votes-for: (+ (get votes-for proposal) voter-balance)})
+        )
+        (map-set proposals 
+          {proposal-id: proposal-id}
+          (merge proposal {votes-against: (+ (get votes-against proposal) voter-balance)})
+        )
+      )
+
+      (ok true)
+    )
+  )
+)
