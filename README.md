@@ -1,4 +1,4 @@
-# Advanced Governance Token Contract
+# Advanced Governance Token Contract (GovernX)
 
 ## Overview
 
